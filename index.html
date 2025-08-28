@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Random Name Generator</title>
+<style>
+  :root{
+    --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--accent:#22d3ee;--accent2:#60a5fa;
+    --ok:#34d399;--warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:linear-gradient(135deg,var(--bg),#0b1022 60%);
+    color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .wrap{
+    width:min(980px,100%);display:grid;gap:16px;
+    grid-template-columns: 1.1fr .9fr;
+  }
+  @media (max-width:900px){ .wrap{grid-template-columns:1fr} }
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+    backdrop-filter: blur(6px);
+  }
+  .card h1,.card h2{margin:0 0 10px}
+  .left{padding:18px 18px 12px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media (max-width:600px){ .row,.row3{grid-template-columns:1fr} }
+  label{font-size:13px;color:var(--muted)}
+  select,input[type="number"],textarea,.chip{
+    width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+    background:#0b1224;color:var(--text);outline:none;
+  }
+  textarea{min-height:120px;resize:vertical}
+  .chip{display:flex;align-items:center;gap:8px}
+  .chip input{width:auto;accent-color:var(--accent)}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  button{
+    padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#001018;
+    font-weight:700;cursor:pointer;transition:transform .05s ease,opacity .2s;
+  }
+  button.secondary{background:#0b1224;color:var(--text)}
+  button:active{transform:scale(.98)}
+  .right{display:flex;flex-direction:column;overflow:hidden}
+  .head{
+    display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)
+  }
+  .count{font-size:12px;color:var(--muted)}
+  .out{padding:16px;overflow:auto;max-height:480px}
+  .name{
+    padding:10px 12px;border:1px dashed rgba(255,255,255,.14);border-radius:10px;margin-bottom:10px;
+    background:#0b1224;font-size:15px
+  }
+  .tip{font-size:12px;color:var(--muted);margin-top:8px}
+  .badge{display:inline-block;background:#0b1224;border:1px solid rgba(255,255,255,.1);padding:3px 8px;border-radius:999px;font-size:12px;margin-right:6px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- LEFT: Controls -->
+    <div class="card left">
+      <h1>Random Name Generator</h1>
+      <p class="tip">Pilih opsi lalu klik <strong>Generate</strong> untuk membuat nama secara acak. Anda juga bisa menambahkan daftar nama kustom.</p>
+
+      <div class="row">
+        <div>
+          <label for="gender">Jenis kelamin</label>
+          <select id="gender">
+            <option value="any">Campur</option>
+            <option value="male">Laki-laki</option>
+            <option value="female">Perempuan</option>
+          </select>
+        </div>
+        <div>
+          <label for="count">Jumlah nama</label>
+          <input id="count" type="number" value="10" min="1" max="200" />
+        </div>
+      </div>
+
+      <div class="row3" style="margin-top:10px">
+        <div class="chip"><input id="withLast" type="checkbox" />
+          <label for="withLast">Tambahkan nama belakang</label>
+        </div>
+        <div class="chip"><input id="unique" type="checkbox" checked />
+          <label for="unique">Cegah duplikat</label>
+        </div>
+        <div>
+          <label for="style">Gaya</label>
+          <select id="style">
+            <option value="indonesia" selected>Indonesia</option>
+            <option value="global">Global sederhana</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label for="custom">Daftar nama kustom (opsional) — satu nama per baris</label>
+        <textarea id="custom" placeholder="Contoh:
+Alya
+Bima
+Celine
+Damar
+..."></textarea>
+        <p class="tip">Jika diisi, generator akan <em>memprioritaskan</em> nama dari daftar ini. Centang “Tambahkan nama belakang” bila ingin menggabungkan dengan marga/last name.</p>
+      </div>
+
+      <div class="btns">
+        <button id="genBtn">Generate</button>
+        <button id="copyBtn" class="secondary">Salin</button>
+        <button id="saveBtn" class="secondary">Unduh .txt</button>
+        <button id="clearBtn" class="secondary">Bersihkan</button>
+      </div>
+
+      <div class="tip">
+        <span class="badge">Tips</span> Tekan <kbd>G</kbd> untuk Generate, <kbd>C</kbd> untuk Salin.
+      </div>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="card right">
+      <div class="head">
+        <h2>Hasil</h2>
+        <div class="count"><span id="counter">0</span> nama</div>
+      </div>
+      <div id="out" class="out" aria-live="polite"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Data ----------
+  const firstMaleID = [
+    "Adit","Agus","Akbar","Aldi","Andi","Arga","Arif","Arkan","Bagas","Bayu","Bima","Bintang","Dafa","Damar","Danang","Dani",
+    "Dewa","Dimas","Eka","Evan","Fajar","Farhan","Fauzan","Fikri","Galang","Gilang","Hafiz","Haidar","Hendra","Ilham","Irvan",
+    "Jafar","Jefri","Johan","Krisna","Miko","Naufal","Prasetyo","Pratama","Rafli","Raka","Rama","Rangga","Rendi","Revan","Reza",
+    "Rian","Ridho","Rizky","Roni","Septian","Surya","Tegar","Yoga","Yogi","Yudha","Zaki"
+  ];
+  const firstFemaleID = [
+    "Aisyah","Alya","Amel","Anisa","Anjani","Aulia","Ayu","Bella","Citra","Dea","Dewi","Dinda","Dwi","Fanny","Farah","Indah","Intan",
+    "Irene","Jihan","Kartika","Keisha","Laras","Lestari","Lia","Maya","Mega","Melati","Nabila","Nadia","Nayla","Niken","Nisa","Novi",
+    "Putri","Rani","Ratna","Rina","Salsa","Sari","Shafa","Sinta","Syifa","Tiara","Vina","Wulan","Yasmin","Zahra"
+  ];
+  // Catatan: Banyak orang Indonesia hanya satu nama; "lastID" disediakan opsional.
+  const lastID = [
+    "Pratama","Nugroho","Saputra","Saputri","Putra","Putri","Wijaya","Santoso","Hidayat","Setiawan","Prasetyo","Firmansyah",
+    "Maulana","Permata","Lestari","Anggraini","Wati","Anjani","Cahyono","Kusuma","Ramadhan","Septiani","Kurniawan","Fauziah"
+  ];
+
+  const firstMaleGlobal = [
+    "Liam","Noah","Oliver","Elijah","James","Lucas","Henry","Alexander","William","Benjamin","Ethan","Daniel","Jacob","Logan","Aiden"
+  ];
+  const firstFemaleGlobal = [
+    "Olivia","Emma","Ava","Sophia","Isabella","Mia","Amelia","Harper","Evelyn","Abigail","Emily","Elizabeth","Camila","Luna","Sofia"
+  ];
+  const lastGlobal = [
+    "Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Anderson","Taylor","Thomas","Harris"
+  ];
+
+  // ---------- Helpers ----------
+  const rngInt = (max) => {
+    // cryptographically stronger random int in [0, max)
+    const arr = new Uint32Array(1);
+    window.crypto.getRandomValues(arr);
+    return Math.floor(arr[0] / (0xFFFFFFFF + 1) * max);
+  };
+  const pick = (arr) => arr[rngInt(arr.length)];
+  const el = id => document.getElementById(id);
+  const sanitize = s => s.replace(/\s+/g,' ').trim();
+
+  // ---------- DOM ----------
+  const gender = el('gender');
+  const count = el('count');
+  const withLast = el('withLast');
+  const unique = el('unique');
+  const styleSel = el('style');
+  const custom = el('custom');
+  const out = el('out');
+  const counter = el('counter');
+  const genBtn = el('genBtn');
+  const copyBtn = el('copyBtn');
+  const saveBtn = el('saveBtn');
+  const clearBtn = el('clearBtn');
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e)=>{
+    if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if(e.key.toLowerCase()==='g'){ e.preventDefault(); generate(); }
+    if(e.key.toLowerCase()==='c'){ e.preventDefault(); copyAll(); }
+  });
+
+  function getPools(){
+    const mode = styleSel.value;
+    const customList = custom.value.split('\n').map(sanitize).filter(Boolean);
+
+    let firstM = mode==='indonesia' ? firstMaleID : firstMaleGlobal;
+    let firstF = mode==='indonesia' ? firstFemaleID : firstFemaleGlobal;
+    let lastN  = mode==='indonesia' ? lastID : lastGlobal;
+
+    // Jika user memberi daftar kustom, gunakan sebagai prioritas pool depan.
+    if(customList.length){
+      // Tidak tahu gendernya, jadikan unisex pool
+      firstM = [...customList, ...firstM];
+      firstF = [...customList, ...firstF];
+    }
+    return { firstM, firstF, lastN };
+  }
+
+  function buildName(g){
+    const { firstM, firstF, lastN } = getPools();
+    let first;
+    if(g === 'male') first = pick(firstM);
+    else if(g === 'female') first = pick(firstF);
+    else {
+      // campur
+      const pool = Math.random() < 0.5 ? firstM : firstF;
+      first = pick(pool);
+    }
+    if(withLast.checked){
+      const last = pick(lastN);
+      // Hindari "Putri Putri" dsb jika kebetulan sama
+      if(last.toLowerCase() === first.toLowerCase()){
+        return first; // fallback satu kata
+      }
+      return `${first} ${last}`;
+    }
+    return first;
+  }
+
+  function generate(){
+    const n = Math.max(1, Math.min(200, parseInt(count.value||'10',10)));
+    const wantUnique = unique.checked;
+    const g = gender.value;
+
+    const set = new Set();
+    const list = [];
+
+    // batas untuk mencegah loop saat unique dipilih & pool kecil
+    const safety = n * 20;
+    let tries = 0;
+
+    while(list.length < n && tries < safety){
+      const name = buildName(g);
+      tries++;
+      if(wantUnique){
+        if(!set.has(name)){
+          set.add(name);
+          list.push(name);
+        }
+      }else{
+        list.push(name);
+      }
+    }
+
+    render(list);
+  }
+
+  function render(list){
+    out.innerHTML = '';
+    list.forEach(nm=>{
+      const div = document.createElement('div');
+      div.className = 'name';
+      div.textContent = nm;
+      out.appendChild(div);
+    });
+    counter.textContent = list.length;
+  }
+
+  function collectText(){
+    return Array.from(out.querySelectorAll('.name')).map(n=>n.textContent).join('\n');
+  }
+
+  async function copyAll(){
+    const txt = collectText();
+    if(!txt){ flash("Tidak ada data untuk disalin","warn"); return; }
+    try{
+      await navigator.clipboard.writeText(txt);
+      flash("Tersalin ke clipboard","ok");
+    }catch{
+      // fallback
+      const area = document.createElement('textarea');
+      area.value = txt; document.body.appendChild(area);
+      area.select(); document.execCommand('copy'); area.remove();
+      flash("Tersalin (fallback)","ok");
+    }
+  }
+
+  function saveAsTxt(){
+    const txt = collectText();
+    if(!txt){ flash("Tidak ada data untuk diunduh","warn"); return; }
+    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'nama-acak.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function clearAll(){
+    out.innerHTML = '';
+    counter.textContent = '0';
+  }
+
+  function flash(msg,type="ok"){
+    const tag = document.createElement('div');
+    tag.textContent = msg;
+    tag.style.position='fixed';
+    tag.style.bottom='16px';
+    tag.style.left='50%';
+    tag.style.transform='translateX(-50%)';
+    tag.style.padding='10px 14px';
+    tag.style.border='1px solid rgba(255,255,255,.14)';
+    tag.style.borderRadius='12px';
+    tag.style.background='#0b1224';
+    tag.style.color='var(--text)';
+    tag.style.boxShadow='0 10px 20px rgba(0,0,0,.25)';
+    tag.style.zIndex='9999';
+    tag.style.fontSize='14px';
+    if(type==="ok"){ tag.style.outline=`2px solid var(--ok)`; }
+    if(type==="warn"){ tag.style.outline=`2px solid var(--warn)`; }
+    document.body.appendChild(tag);
+    setTimeout(()=> tag.remove(), 1600);
+  }
+
+  // Bindings
+  genBtn.addEventListener('click', generate);
+  copyBtn.addEventListener('click', copyAll);
+  saveBtn.addEventListener('click', saveAsTxt);
+  clearBtn.addEventListener('click', clearAll);
+
+  // Generate awal
+  generate();
+})();
+</script>
+</body>
+</html>
